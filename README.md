@@ -1,2 +1,2 @@
 # LinkHS Jobs API
- Central API system for aggregating jobs from various mainstream job APIs
+ Part of LinkHS' central API system for aggregating jobs from various mainstream job APIs
