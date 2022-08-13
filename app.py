@@ -13,6 +13,9 @@ from careerjet_api import CareerjetAPIClient
 # google jobs import
 from serpapi import GoogleSearch
 
+# remotive jobs
+from remotive_jobs import getRemotiveJobs
+
 # retrieve env
 import os
 
@@ -26,6 +29,8 @@ app = Flask(__name__)
 
 # ---------------------------------------------------------------------------- #
 def get_google_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
+
+    gg_start = time.time()
 
     if not FETCH_ALL_JOBS:
         pageNum = str(int(pageNum) * 10)
@@ -51,6 +56,7 @@ def get_google_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
         return {'error': f'Error Code 2: API query failed. Failed to retrieve jobs from Google Jobs API with info: loc={location}, keywords={keywords}, pageNum={pageNum}'}
 
     if 'error' in results:
+        print("\nFinished fetching Google (SerpAPI) jobs, recieved error in", time.time() - gg_start)
         return results
 
     if results['search_metadata']['status'] != 'Success':
@@ -72,10 +78,13 @@ def get_google_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
 
         del results['search_parameters']
 
+    print("\nFinished fetching Google (SerpAPI) jobs in", time.time() - gg_start)
     return results
 
 # ---------------------------------------------------------------------------- #
 def get_careerjet_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
+
+    cj_start = time.time()
 
     try:
         # initializing the CareerJet client
@@ -136,6 +145,7 @@ def get_careerjet_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
             result_dict['jobs'].extend(next_result['jobs'])
             numPagesRemaining -= 1
 
+    print(f"\nFinished fetching CareerJet jobs up to page {pageNum} in", time.time() - cj_start)
     return result_dict
 
 # ---------------------------------------------------------------------------- #
@@ -177,12 +187,23 @@ def search():
         google_response = {'status': 'Error: keyword(s) are required for google search'}
         total_jobs = num_careerjet_jobs
 
+    # Remotive Jobs
+    remotive_res = getRemotiveJobs(keywords)
+
+    if 'error' not in remotive_res:
+        print("Num Remotive jobs:", remotive_res['job-count'])
+        remotive_jobs = remotive_res['jobs']
+        total_jobs += int(remotive_res['job-count'])
+
+    else:
+        remotive_jobs = remotive_res
+
     print("\nTotal jobs:", total_jobs)
-    jobs = {'careerjet jobs': careerjet_response, 'google jobs': google_response, 'total hits': f'{total_jobs}'}
+    jobs = {'careerjet jobs': careerjet_response, 'google jobs': google_response, 'remotive jobs': remotive_jobs,'total hits': f'{total_jobs}', 'total time': f'{time.time() - start}'}
 
     response = json.dumps(jobs, indent=4)
 
-    print("\nTotal time:", time.time() - start)
+    print("Total time:", time.time() - start)
     return response
 
 # ---------------------------------------------------------------------------- #
