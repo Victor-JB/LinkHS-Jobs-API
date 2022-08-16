@@ -70,7 +70,7 @@ def get_google_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
         currentPage = 0
         print(f"\nSearching for '{keywords}' in '{location}' until time is up")
 
-        while (time.time()-pageTimer) < 10:
+        while (time.time()-pageTimer) < 1:
             currentPage += 1
             next_result = get_google_jobs(keywords, location, currentPage, False)
             if 'error' not in next_result:
@@ -139,7 +139,7 @@ def get_careerjet_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
 
         currentPage = 1
         numPagesRemaining = numPages - 1
-        while numPagesRemaining != 0 and (time.time()-pageTimer) < 10:
+        while numPagesRemaining != 0 and (time.time()-pageTimer) < 1:
             currentPage += 1
             next_result = get_careerjet_jobs(keywords, location, currentPage, False)
             result_dict['jobs'].extend(next_result['jobs'])
