@@ -64,6 +64,13 @@ def get_google_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
     else:
         del results['search_metadata']
 
+        # cleaning job description of all unicode characters
+        for job in results['jobs_results']:
+            description_encoded = job['description'].encode("ascii", "ignore")
+            description_decoded = description_encoded.decode().replace('\n', ' ')
+            job['description'] = description_decoded
+
+
     if FETCH_ALL_JOBS:
 
         pageTimer = time.time()
@@ -127,9 +134,24 @@ def get_careerjet_jobs(keywords, location, pageNum, FETCH_ALL_JOBS):
             element['description'] = desc[i - 1]
             i += 1
         """
+        pass
     except Exception as e:
         traceback.print_exc()
         return {"error": "Error Code 5: Couldn't retrieve full job descriptions"}
+
+    # adding '...' to careerjet descriptions for consistency's sake,
+    # and cleaning it of all stray unicode characters
+    for job in result_dict['jobs']:
+        uncleaned_description = job['description']
+        description_encoded = uncleaned_description.encode("ascii", "ignore")
+        description_decoded = description_encoded.decode().replace('\n', ' ')
+        job['description'] = "..." + description_decoded
+
+        # cleaning title
+        uncleaned_title = job['title']
+        description_encoded = uncleaned_title.encode("ascii", "ignore")
+        description_decoded = description_encoded.decode().replace('\n', ' ')
+        job['title'] = description_decoded
 
     if FETCH_ALL_JOBS:
 
@@ -211,4 +233,4 @@ if __name__ == "__main__":
 	# setting debug to True enables hot reload
 	# and also provides a debugger shell
 	# if you hit an error while running the server
-	app.run(debug = True)
+	app.run(debug=True)

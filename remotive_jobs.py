@@ -11,6 +11,9 @@ import requests
 # converting to dictionary
 import json
 
+# for stripping the html from the job descriptions
+from bs4 import BeautifulSoup
+
 # limiting the number of pages to fetch
 import time
 
@@ -28,6 +31,12 @@ def getRemotiveJobs(search_terms):
         return {'error': f'Recieved status code {response.status_code} for remotive jobs with error {response.text}'}
     else:
         response_json = json.loads(response.text)
+        for job in response_json['jobs']:
+            uncleaned_description = job['description']
+            html_removed_description = BeautifulSoup(uncleaned_description, "lxml").text
+            description_encoded = html_removed_description.encode("ascii", "ignore")
+            description_decoded = description_encoded.decode().replace('\n', ' ').replace('  ', ' ')
+            job['description'] = description_decoded
 
     print("\nFinished fetching Remotive jobs in", time.time() - start)
     return response_json
